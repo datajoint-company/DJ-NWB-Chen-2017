@@ -1,4 +1,4 @@
-# Chen-2017
+# Chen et al., 2017
 
 This repository sets up the data pipeline corresponding to the data from Chen et al., (2017). **"A Map of Anticipatory Activity in Mouse Motor Cortex."** and provides a Jupyter Notebook demonstrating the use of the DataJoint pipeline in replicating some of the main figures.
 
@@ -8,7 +8,7 @@ Link to the original data (need to ask for permission): https://www.dropbox.com/
 
 Link to the exported nwb files: https://drive.google.com/drive/u/1/folders/18AQl-FIVIdgRWzEFb5BVNxeGuiyrnT0c
 
-Access to view the notebook: https://nbviewer.jupyter.org/github/shenshan/Chen-2017/blob/master/notebooks/Chen-2017-examples.ipynb
+Access to view the notebook: https://github.com/vathes/Chen-2017/blob/master/notebooks/Chen-2017-examples.ipynb
 
 This study characterized selectivity of cells in anterior lateral motor cortex (ALM) and medial motor cortex (MM). Cells are classified into 5 types: lick direction cells (lick), object location cells (lick), outcome cells (outcome), complex selective cells that are selective to multiple features, and non selective cells. The notebook in this repository replicates Figure 4, 5 and part of Figure 6 of the paper.
 
