@@ -114,6 +114,11 @@ def export_to_nwb(session_key, nwb_output_dir=default_nwb_output_dir, save=False
     # insert ROI mask
     rois = (imaging.Scan.Roi & this_session).fetch(as_dict=True)
 
+    roi_indices, roi_traces, neuropil_traces = (imaging.Scan.Roi & this_session).fetch(
+        'roi_idx', 'roi_trace', 'neuropil_trace')
+    roi_traces = np.transpose(np.squeeze(np.array(roi_traces.tolist())))
+    neuropil_traces = np.transpose(np.squeeze(np.array(neuropil_traces.tolist())))
+
     for k, v in dict(
             cell_type='PT, IT, or unknown',
             included='whether to include this roi into later analyses'
@@ -126,25 +131,29 @@ def export_to_nwb(session_key, nwb_output_dir=default_nwb_output_dir, save=False
         mask[np.unravel_index(roi['roi_pixel_list']-1, mask.shape, 'F')] = 1
 
         pln_seg.add_roi(
-            image_mask=mask,
+            image_mask=mask.astype(bool),
             cell_type='unknown' if roi['cell_type']=='N/A' else roi['cell_type'],
             included=bool(roi['inc']))
 
-        roi_region = pln_seg.create_roi_table_region(
-            name='roi_{}'.format(roi['roi_idx']),
-            description='table region for rois in this segmentation',
-            region=[roi['roi_idx']-1])
+    roi_region = pln_seg.create_roi_table_region(
+        name='rois',
+        description='table region for rois in this segmentation',
+        region=list(roi_indices-1))
 
-        roi_fluorescence.create_roi_response_series(
-            name='roi_{:03}_trace'.format(roi['roi_idx']),
-            data=roi['roi_trace'],
-            description='average fluorescence of roi',
-            rois=roi_region, starting_time=starting_time, rate=rate)
-        roi_fluorescence.create_roi_response_series(
-            name='neurophil_{:03}_trace'.format(roi['roi_idx']),
-            data=roi['neuropil_trace'],
-            description='average fluorescence of the neuropil surrounding the roi',
-            rois=roi_region, starting_time=starting_time, rate=rate)
+    roi_fluorescence.create_roi_response_series(
+        name='RoiResponseSeries',
+        data=roi_traces,
+        description='average fluorescence of roi',
+        rois=roi_region,
+        unit='a.u.',
+        starting_time=starting_time, rate=rate)
+    roi_fluorescence.create_roi_response_series(
+        name='NeuropilResponseSeries',
+        data=neuropil_traces,
+        description='average fluorescence of the neuropil surrounding the roi',
+        rois=roi_region,
+        unit='a.u.',
+        starting_time=starting_time, rate=rate)
 
     # ===============================================================================
     # =============================== BEHAVIOR TRIALS ===============================
@@ -163,8 +172,8 @@ def export_to_nwb(session_key, nwb_output_dir=default_nwb_output_dir, save=False
         trial_columns = [{'name': tag,
                           'description': re.sub('\s+:|\s+', ' ', re.search(
                             f'(?<={tag})(.*)', str(dj_trial.heading)).group()).strip()}
-                        for tag in dj_trial.heading.names
-                        if tag not in skip_adding_columns + ['start_time', 'stop_time']]
+                         for tag in dj_trial.heading.names
+                         if tag not in skip_adding_columns + ['start_time', 'stop_time']]
 
         # Add new table columns to nwb trial-table for trial-label
         for c in trial_columns:
